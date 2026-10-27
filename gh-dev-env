@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# gh dev-env: create a private copy of dev-env-template on GitHub, clone it, and run its setup.
+set -euo pipefail
+
+TEMPLATE="${DEV_ENV_TEMPLATE:-Alterna-Dev-Studio/dev-env-template}"
+
+usage() {
+    echo "Usage: gh dev-env [name] [setup options...]"
+    echo "  name     New repository name, or owner/name (default: my-dev-env)"
+    echo "  options  Passed to ./scripts/setup, e.g. --skip-taiga-mcp"
+    echo ""
+    echo "Runs: gh repo create <name> --template $TEMPLATE --private --clone"
+    echo "then cd <name> && ./scripts/setup [setup options...]"
+}
+
+case "${1:-}" in
+    -h|--help) usage; exit 0 ;;
+esac
+
+name="my-dev-env"
+if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+    name="$1"
+    shift
+fi
+dir="${name##*/}"
+
+if ! command -v gh >/dev/null 2>&1; then
+    echo "gh is required: https://cli.github.com/ (then run: gh auth login)" >&2
+    exit 1
+fi
+if [ -e "$dir" ]; then
+    echo "$dir already exists here; choose another name or directory." >&2
+    exit 1
+fi
+
+gh repo create "$name" --template "$TEMPLATE" --private --clone
+
+# GitHub copies template files asynchronously, so the clone can land empty.
+for _ in 1 2 3 4 5; do
+    [ -x "$dir/scripts/setup" ] && break
+    sleep 2
+    git -C "$dir" pull --quiet origin HEAD || true
+done
+if [ ! -x "$dir/scripts/setup" ]; then
+    echo "$dir was created but its files have not arrived yet; run: cd $dir && git pull && ./scripts/setup" >&2
+    exit 1
+fi
+
+cd "$dir"
+exec ./scripts/setup "$@"
