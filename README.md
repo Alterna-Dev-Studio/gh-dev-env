@@ -7,7 +7,7 @@ gh extension install Alterna-Dev-Studio/gh-dev-env
 gh dev-env my-dev-env
 ```
 
-`gh dev-env <name>` runs `gh repo create <name> --template Alterna-Dev-Studio/dev-env-template --private --clone`, pulls until GitHub has finished copying the template files, then runs `cd <name> && ./scripts/setup`. The name defaults to `my-dev-env`. Give `owner/name` to create the repository under an organization. Options after the name, such as `--skip-taiga-mcp`, are passed to setup. It refuses to run if `./<name>` already exists.
+`gh dev-env <name>` runs `gh repo create <name> --template Alterna-Dev-Studio/dev-env-template --private --clone`, pulls until GitHub has finished copying the template files, then runs `cd <name> && ./scripts/setup`. The name defaults to `my-dev-env`. Give `owner/name` to create the repository under an organization. Options after the name, such as `--skip-taiga-mcp`, are passed to setup. It refuses to run if `./<name>` already exists. Open a new shell afterwards: the copy's `dv` (also `dev-env`) command is then on `PATH`, and `dv --help` lists what it does.
 
 Set `DEV_ENV_TEMPLATE=owner/repo` to start from a fork of the template instead.
 
